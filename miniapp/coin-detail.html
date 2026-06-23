@@ -56,12 +56,13 @@
   .back-btn{
     width:38px; height:38px;
     border-radius:var(--radius-pill);
-    background: rgba(255,255,255,0.05);
-    border:1px solid var(--card-border);
+    background: rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.22);
     display:flex; align-items:center; justify-content:center;
-    color: var(--text-primary);
+    color: #fff;
     cursor:pointer;
   }
+  .back-btn svg{ width:20px; height:20px; }
   .back-btn:active{ opacity:0.7; }
   .fav-btn{
     width:38px; height:38px;
@@ -126,11 +127,46 @@
   .chart-wrap{
     margin-bottom:14px;
     position:relative;
+    border-radius:12px;
+    overflow:hidden;
   }
+
+  /* Skeleton shimmer shown while chart data loads */
+  .chart-skeleton{
+    position:absolute;
+    inset:0;
+    z-index:2;
+    background: var(--bg-elev);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .chart-skeleton::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255,255,255,0.06) 50%,
+      transparent 100%
+    );
+    background-size:200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  .chart-skeleton.hidden{ display:none; }
+  @keyframes shimmer{
+    0%  { background-position: 200% 0; }
+    100%{ background-position:-200% 0; }
+  }
+
   .chart-svg{ width:100%; height:170px; display:block; touch-action:none; }
+  /* Disable tabs while chart loads */
+  .time-tabs.loading .time-tab{ pointer-events:none; opacity:0.4; }
+  .time-tabs.loading .time-tab.active{ opacity:1; }
+
   .chart-tooltip{
     position:absolute;
     top:-6px;
+    z-index:3;
     background: rgba(20,22,28,0.92);
     border:1px solid rgba(255,255,255,0.14);
     backdrop-filter: blur(8px);
@@ -228,6 +264,7 @@
   }
   @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:0.4} }
 </style>
+<script>window.Telegram?.WebApp?.expand();</script>
 </head>
 <body>
 
@@ -258,6 +295,7 @@
   </div>
 
   <div class="chart-wrap">
+    <div class="chart-skeleton" id="chartSkeleton"></div>
     <div class="chart-tooltip" id="chartTooltip">—</div>
     <svg class="chart-svg" id="chartSvg" viewBox="0 0 380 170" preserveAspectRatio="none">
       <defs>
@@ -278,7 +316,7 @@
     </svg>
   </div>
 
-  <div class="time-tabs">
+  <div class="time-tabs" id="timeTabs">
     <div class="time-tab" data-range="live">LIVE</div>
     <div class="time-tab" data-range="1h">1H</div>
     <div class="time-tab active" data-range="1d">1D</div>
@@ -335,7 +373,21 @@ const COIN_IDS = {
   PEPE:'pepe',         HYPE:'hyperliquid'
 };
 const ICON_OVERRIDE = { POL: 'matic' };
-const RANGE_DAYS    = { live:1, '1h':0.04, '1d':1, '1w':7, '1m':30, '1y':365 };
+
+// CoinGecko free API auto-granularity:
+//   days=1  → ~5-min intervals (~288 pts)  ← used for LIVE, 1H, 1D
+//   days=7  → hourly (~168 pts)
+//   days=30 → hourly (~720 pts)
+//   days=365→ daily  (365 pts)
+// 1H = last 12 points of days=1 data (12 × 5 min ≈ 1 hour)
+const RANGE_CONFIG = {
+  live: { days: 1,   tail: null },
+  '1h': { days: 1,   tail: 12   },
+  '1d': { days: 1,   tail: null },
+  '1w': { days: 7,   tail: null },
+  '1m': { days: 30,  tail: null },
+  '1y': { days: 365, tail: null },
+};
 
 const coinId  = COIN_IDS[coin] || coin.toLowerCase();
 const iconSym = ICON_OVERRIDE[coin] || coin.toLowerCase();
@@ -360,10 +412,41 @@ const cursorDot  = document.getElementById('cursorDot');
 const tooltip    = document.getElementById('chartTooltip');
 const priceValueEl  = document.getElementById('priceValue');
 const priceChangeEl = document.getElementById('priceChange');
+const skeletonEl    = document.getElementById('chartSkeleton');
+const timeTabsEl    = document.getElementById('timeTabs');
 
 const W = 380, H = 170, PAD = 10;
-let currentPoints = [];
-let liveTimer = null;
+let currentPoints  = [];
+let liveTimer      = null;
+let isLoadingChart = false;
+
+// Cache promises keyed by days — prevents duplicate in-flight requests
+const chartCache = new Map();
+
+// Wipe all SVG chart elements back to blank
+function clearChart() {
+  linePath.setAttribute('d', '');
+  fillPath.setAttribute('d', '');
+  endDot.setAttribute('cx', -20);    endDot.setAttribute('cy', -20);
+  endDotGlow.setAttribute('cx', -20); endDotGlow.setAttribute('cy', -20);
+  cursorLine.setAttribute('opacity', 0);
+  cursorDot.setAttribute('opacity', 0);
+  currentPoints = [];
+}
+
+// Retry helper — 3 attempts with 1s / 2s backoff
+async function fetchWithRetry(url, attempts = 3) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch(e) {
+      if (i === attempts - 1) throw e;
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+}
 
 // --- Formatters ---
 function fmtPrice(n) {
@@ -447,22 +530,30 @@ function updatePriceDisplay(price, change24h) {
     ` ${isUp ? '+' : ''}${change24h.toFixed(2)}%`;
 }
 
-// --- API calls ---
+// --- API: price (with retry) ---
 async function fetchPrice() {
   try {
-    const res  = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`);
-    const data = await res.json();
+    const data = await fetchWithRetry(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`
+    );
     const info = data[coinId];
     if (info) updatePriceDisplay(info.usd, info.usd_24h_change || 0);
   } catch (e) {
-    console.warn('price fetch failed', e);
+    console.warn('price fetch failed after retries', e);
   }
 }
 
-async function fetchChartData(days) {
-  const res  = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`);
-  const data = await res.json();
-  return data.prices || [];
+// --- API: chart — cache the promise so parallel calls share one fetch ---
+function fetchChartData(days) {
+  const key = String(days);
+  if (chartCache.has(key)) return chartCache.get(key);
+  const promise = fetchWithRetry(
+    `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
+  )
+    .then(d => d.prices || [])
+    .catch(e => { chartCache.delete(key); console.warn('chart fetch failed', e); return []; });
+  chartCache.set(key, promise);
+  return promise;
 }
 
 async function fetchStats() {
@@ -512,18 +603,29 @@ async function fetchStats() {
 
 // --- Tab switching ---
 async function switchTab(range) {
+  if (isLoadingChart) return;
+  isLoadingChart = true;
+
   clearInterval(liveTimer);
   liveTimer = null;
+
+  clearChart(); // always wipe SVG before loading new data
 
   document.querySelectorAll('.time-tab').forEach(t =>
     t.classList.toggle('active', t.dataset.range === range)
   );
+  timeTabsEl.classList.add('loading');
+  skeletonEl.classList.remove('hidden');
 
   try {
-    const prices = await fetchChartData(RANGE_DAYS[range]);
-    renderChart(prices);
-  } catch (e) {
-    console.warn('chart fetch failed', e);
+    const { days, tail } = RANGE_CONFIG[range];
+    let pts = await fetchChartData(days);
+    if (tail && pts.length > tail) pts = pts.slice(-tail);
+    renderChart(pts);
+  } finally {
+    skeletonEl.classList.add('hidden');
+    timeTabsEl.classList.remove('loading');
+    isLoadingChart = false;
   }
 
   if (range === 'live') {
@@ -576,10 +678,32 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-// --- Init ---
+// Hard-reset everything and re-init (called on bfcache restore)
+function hardReset() {
+  clearInterval(liveTimer);
+  liveTimer      = null;
+  isLoadingChart = false;
+  chartCache.clear();
+  clearChart();
+  skeletonEl.classList.remove('hidden');
+  timeTabsEl.classList.remove('loading');
+  document.querySelectorAll('.time-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.range === '1d')
+  );
+}
+
+// Telegram WebView uses bfcache — JS state persists across back/forward
+// navigation. Without this, isLoadingChart stays true and the chart never loads.
+window.addEventListener('pageshow', e => {
+  if (e.persisted) {
+    hardReset();
+    Promise.all([fetchPrice(), switchTab('1d')]).then(() => fetchStats());
+  }
+});
+
+// --- Init: fire price + chart in parallel, stats last ---
 (async () => {
-  await fetchPrice();
-  await switchTab('1d');
+  await Promise.all([fetchPrice(), switchTab('1d')]);
   fetchStats();
 })();
 </script>

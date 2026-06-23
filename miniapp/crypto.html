@@ -47,6 +47,7 @@ body{background:radial-gradient(ellipse 600px 400px at 20% -5%,rgba(139,92,246,.
 .spinning{display:inline-block;animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 </style>
+<script>window.Telegram?.WebApp?.expand();</script>
 </head>
 <body>
 <div class="device">
@@ -137,6 +138,30 @@ const ALL_COINS = [
 
 let prices = {};
 let autoRefreshTimer = null;
+const CACHE_KEY = 'll_prices_v1';
+
+function saveCache() {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(prices)); } catch(e) {}
+}
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw) prices = JSON.parse(raw);
+  } catch(e) {}
+}
+
+async function fetchWithRetry(url, attempts = 3) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch(e) {
+      if (i === attempts - 1) throw e;
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+}
 
 function iconHTML(symbol) {
   const f = ICON_FILE[symbol];
@@ -156,45 +181,45 @@ function formatChange(pct) {
   return sign + pct.toFixed(2) + '%';
 }
 
-// دریافت قیمت‌های واقعی از CoinGecko
 async function fetchPrices(symbols) {
   const ids = symbols.map(s => CG_IDS[s]).filter(Boolean).join(',');
-  if(!ids) return;
+  if (!ids) return;
   try {
-    const res = await fetch(
+    const data = await fetchWithRetry(
       `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
     );
-    const data = await res.json();
     symbols.forEach(s => {
       const id = CG_IDS[s];
-      if(data[id]) {
+      if (data[id]) {
         prices[s] = {
-          price: formatPrice(data[id].usd),
+          price:  formatPrice(data[id].usd),
           change: formatChange(data[id].usd_24h_change || 0),
-          up: (data[id].usd_24h_change || 0) >= 0
+          up:     (data[id].usd_24h_change || 0) >= 0
         };
       }
     });
+    saveCache();
     const now = new Date();
     document.getElementById('lastUpdate').textContent =
       `Updated ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
   } catch(e) {
-    console.error('Price fetch failed:', e);
+    console.error('Price fetch failed after retries:', e);
+    document.getElementById('lastUpdate').textContent = 'Using cached prices';
   }
 }
 
 async function loadAndRender() {
+  // Show cached prices instantly — no blank screen while fetching
+  loadCache();
+
   let active = await supabase.getActiveCoins(TELEGRAM_USER_ID);
-  if(active.length === 0) active = ['BTC','ETH','USDT','XRP','SOL'];
+  if (active.length === 0) active = ['BTC','ETH','USDT','XRP','SOL'];
   const coins = ALL_COINS.filter(c => active.includes(c.s));
   document.getElementById('topbarSub').textContent =
-    `${coins.length} coin${coins.length!==1?'s':''} shown · live prices`;
+    `${coins.length} coin${coins.length !== 1 ? 's' : ''} shown · live prices`;
 
-  // اول رندر با قیمت‌های قبلی (یا "—")
-  renderCoins(coins);
-
-  // بعد قیمت‌های جدید از CoinGecko
-  await fetchPrices(active);
+  renderCoins(coins);        // instant render from cache
+  await fetchPrices(active); // then refresh with live data
   renderCoins(coins);
 
   // آپدیت خودکار هر 60 ثانیه
