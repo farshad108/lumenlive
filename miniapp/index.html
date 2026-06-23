@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>LumenLive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0C10;
+    --bg-elev: #11141A;
+    --card-border: rgba(255,255,255,0.08);
+    --text-primary: #F2F4F8;
+    --text-secondary: #8A92A3;
+    --text-tertiary: #5B6273;
+
+    --glow-blue: #3B82F6;
+    --glow-purple: #8B5CF6;
+    --glow-amber: #F5A623;
+    --glow-silver: #9FB4C7;
+    --glow-green: #34D399;
+    --glow-violet: #A78BFA;
+
+    --radius-lg: 28px;
+    --radius-md: 22px;
+    --radius-pill: 999px;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body{
+    height:100%;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Manrope', sans-serif;
+    overflow-x:hidden;
+  }
+
+  body{
+    background:
+      radial-gradient(ellipse 600px 400px at 20% -5%, rgba(139,92,246,0.16), transparent 60%),
+      radial-gradient(ellipse 500px 350px at 90% 10%, rgba(59,130,246,0.10), transparent 55%),
+      var(--bg);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+
+  .device{
+    width:100%;
+    max-width:430px;
+    min-height:100vh;
+    position:relative;
+    padding: 28px 18px 110px;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:22px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand-mark{
+    width:30px; height:30px;
+    border-radius:9px;
+    background: radial-gradient(circle at 30% 30%, #fff, var(--glow-amber) 45%, #7a4d00 100%);
+    box-shadow: 0 0 18px rgba(245,166,35,0.55);
+  }
+  .brand-name{
+    font-weight:800;
+    font-size:17px;
+    letter-spacing:0.2px;
+  }
+  .topbar-icon{
+    width:38px; height:38px;
+    border-radius:var(--radius-pill);
+    background: rgba(255,255,255,0.04);
+    border:1px solid var(--card-border);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--text-secondary);
+  }
+
+  /* ---------- Portfolio header card ---------- */
+  .portfolio-card{
+    position:relative;
+    border-radius: var(--radius-lg);
+    padding: 24px 22px 22px;
+    background: linear-gradient(160deg, rgba(59,130,246,0.16), rgba(139,92,246,0.10) 55%, rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.10);
+    backdrop-filter: blur(20px);
+    overflow:hidden;
+    margin-bottom: 18px;
+    box-shadow: 0 20px 50px -20px rgba(59,130,246,0.35);
+  }
+  .portfolio-card::before{
+    content:"";
+    position:absolute; inset:0;
+    background: radial-gradient(circle 220px at 85% 0%, rgba(139,92,246,0.35), transparent 70%);
+    pointer-events:none;
+  }
+  .portfolio-top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    position:relative;
+    z-index:1;
+  }
+  .portfolio-label{
+    font-size:13px;
+    font-weight:600;
+    color: var(--text-secondary);
+    text-transform:uppercase;
+    letter-spacing:0.8px;
+  }
+  .settings-btn{
+    width:34px; height:34px;
+    border-radius:var(--radius-pill);
+    background: rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.10);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--text-secondary);
+  }
+  .portfolio-value{
+    font-family:'JetBrains Mono', monospace;
+    font-size:38px;
+    font-weight:600;
+    letter-spacing:-0.5px;
+    margin-top:10px;
+    position:relative; z-index:1;
+    text-shadow: 0 0 30px rgba(59,130,246,0.35);
+  }
+  .portfolio-change{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    margin-top:8px;
+    font-size:13px;
+    font-weight:700;
+    color: var(--glow-green);
+    position:relative; z-index:1;
+  }
+  .portfolio-change--empty{
+    color: var(--text-secondary);
+    font-weight:600;
+  }
+  .portfolio-cta{
+    margin-top:16px;
+    position:relative; z-index:1;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:10px 16px;
+    border-radius:var(--radius-pill);
+    background: rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.14);
+    font-size:13px;
+    font-weight:700;
+    color:#fff;
+  }
+  .portfolio-cta svg{ width:14px; height:14px; }
+  .portfolio-sparkline{
+    margin-top:16px;
+    position:relative;
+    z-index:1;
+  }
+
+  /* ---------- Grid of main cards ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .card{
+    position:relative;
+    border-radius: var(--radius-md);
+    padding: 20px 18px 18px;
+    background: var(--bg-elev);
+    border: 1px solid var(--card-border);
+    overflow:hidden;
+    cursor:pointer;
+    transition: transform .15s ease;
+    min-height: 152px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .card:active{ transform: scale(0.97); }
+
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:-30% -30% auto auto;
+    width:160px; height:160px;
+    border-radius:50%;
+    filter: blur(40px);
+    opacity:0.35;
+    pointer-events:none;
+  }
+
+  .card-icon{
+    width:68px; height:68px;
+    border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    z-index:1;
+  }
+  .card-icon img{
+    width:100%; height:100%;
+    object-fit:contain;
+    filter: drop-shadow(0 4px 14px rgba(0,0,0,0.4));
+  }
+
+  .card-title{
+    font-size:15.5px;
+    font-weight:700;
+    margin-top:14px;
+    position:relative; z-index:1;
+  }
+  .card-sub{
+    font-size:12px;
+    color: var(--text-tertiary);
+    margin-top:2px;
+    position:relative; z-index:1;
+  }
+
+  .card-arrow{
+    position:absolute;
+    bottom:14px; right:14px;
+    width:26px; height:26px;
+    border-radius:50%;
+    background: rgba(255,255,255,0.05);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--text-secondary);
+    z-index:1;
+  }
+
+  /* Crypto card */
+  .card-crypto::before{ background: var(--glow-amber); }
+
+  /* Metals card */
+  .card-metals::before{ background: var(--glow-silver); }
+
+  /* Stocks card */
+  .card-stocks::before{ background: var(--glow-green); }
+
+  /* More card */
+  .card-more::before{ background: var(--glow-violet); }
+
+  /* ---------- Bottom nav ---------- */
+  .bottom-nav{
+    position:fixed;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    width:calc(100% - 36px);
+    max-width:394px;
+    background: rgba(17,20,26,0.85);
+    backdrop-filter: blur(20px);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-pill);
+    display:flex;
+    justify-content:space-around;
+    padding:10px 6px;
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.6);
+  }
+  .nav-item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    color: var(--text-tertiary);
+    font-size:10.5px;
+    font-weight:600;
+    padding:6px 14px;
+    border-radius:var(--radius-pill);
+    transition: all .15s ease;
+  }
+  .nav-item svg{ width:21px; height:21px; }
+  .nav-item.active{
+    color:#fff;
+    background: rgba(59,130,246,0.16);
+  }
+  .nav-item.active svg{ filter: drop-shadow(0 0 6px rgba(59,130,246,0.8)); color:#5B9BFF; }
+</style>
+</head>
+<body>
+
+<div class="device">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-name">LumenLive</div>
+    </div>
+    <div class="topbar-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+  </div>
+
+  <!-- My Portfolio header -->
+  <div class="portfolio-card">
+    <div class="portfolio-top">
+      <div class="portfolio-label">My Portfolio</div>
+      <div class="settings-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+    </div>
+    <div class="portfolio-value">$0.00</div>
+    <div class="portfolio-change portfolio-change--empty">
+      Connect a wallet to see your balance
+    </div>
+    <div class="portfolio-cta">
+      <span>+ Add wallet address</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
+
+  <!-- 2x2 grid -->
+  <div class="grid">
+
+    <div class="card card-crypto" onclick="location.href='crypto.html'">
+      <div class="card-icon">
+        <img src="assets/icons/crypto.png" alt="Crypto" />
+      </div>
+      <div>
+        <div class="card-title">Crypto</div>
+        <div class="card-sub">30 coins · live</div>
+      </div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+    <div class="card card-metals" onclick="location.href='#'">
+      <div class="card-icon">
+        <img src="assets/icons/metals.png" alt="Metals" />
+      </div>
+      <div>
+        <div class="card-title">Metals</div>
+        <div class="card-sub">Gold · Silver · Copper</div>
+      </div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+    <div class="card card-stocks" onclick="location.href='#'">
+      <div class="card-icon">
+        <img src="assets/icons/stocks.png" alt="Stocks & Oil" />
+      </div>
+      <div>
+        <div class="card-title">Stocks &amp; Oil</div>
+        <div class="card-sub">Markets overview</div>
+      </div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+    <div class="card card-more" onclick="location.href='more.html'">
+      <div class="card-icon">
+        <img src="assets/icons/more.png" alt="More" />
+      </div>
+      <div>
+        <div class="card-title">More</div>
+        <div class="card-sub">Tools &amp; alerts</div>
+      </div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <div class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+    Home
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+    Watchlist
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    Alerts
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Settings
+  </div>
+</div>
+
+</body>
+</html>

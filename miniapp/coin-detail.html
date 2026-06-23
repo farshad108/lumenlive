@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>LumenLive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0C10;
+    --bg-elev: #11141A;
+    --card-border: rgba(255,255,255,0.08);
+    --text-primary: #F2F4F8;
+    --text-secondary: #8A92A3;
+    --text-tertiary: #5B6273;
+    --green: #34D399;
+    --red: #F87171;
+    --amber: #F5A623;
+    --radius-pill: 999px;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body{
+    height:100%;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Manrope', sans-serif;
+  }
+
+  body{
+    background:
+      radial-gradient(ellipse 600px 350px at 30% -5%, rgba(245,166,35,0.10), transparent 60%),
+      var(--bg);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+
+  .device{
+    width:100%;
+    max-width:430px;
+    min-height:100vh;
+    padding: 22px 18px 50px;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .back-btn{
+    width:38px; height:38px;
+    border-radius:var(--radius-pill);
+    background: rgba(255,255,255,0.05);
+    border:1px solid var(--card-border);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--text-primary);
+    cursor:pointer;
+  }
+  .back-btn:active{ opacity:0.7; }
+  .fav-btn{
+    width:38px; height:38px;
+    border-radius:var(--radius-pill);
+    background: rgba(245,166,35,0.12);
+    border:1px solid rgba(245,166,35,0.3);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--amber);
+  }
+
+  /* ---------- Coin identity ---------- */
+  .identity-row{
+    display:flex;
+    align-items:center;
+    gap:13px;
+    margin-bottom:18px;
+  }
+  .identity-icon{
+    width:52px; height:52px;
+    border-radius:50%;
+    background: rgba(245,166,35,0.10);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: inset 0 0 0 1px rgba(245,166,35,0.2);
+    flex-shrink:0;
+  }
+  .identity-icon img{ width:78%; height:78%; object-fit:contain; }
+  .identity-symbol{ font-size:20px; font-weight:800; }
+  .identity-name{
+    font-size:13px;
+    font-weight:600;
+    color: var(--text-secondary);
+    margin-top:1px;
+  }
+  .identity-network{
+    font-size:12px;
+    font-weight:600;
+    color: var(--text-tertiary);
+    margin-top:2px;
+  }
+
+  /* ---------- Price block ---------- */
+  .price-block{ margin-bottom:18px; }
+  .price-value{
+    font-family:'JetBrains Mono', monospace;
+    font-size:36px;
+    font-weight:600;
+    letter-spacing:-0.5px;
+  }
+  .price-change{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:14px;
+    font-weight:700;
+    margin-top:6px;
+    color: var(--text-tertiary);
+  }
+  .price-change.up{ color: var(--green); }
+  .price-change.down{ color: var(--red); }
+
+  /* ---------- Chart ---------- */
+  .chart-wrap{
+    margin-bottom:14px;
+    position:relative;
+  }
+  .chart-svg{ width:100%; height:170px; display:block; touch-action:none; }
+  .chart-tooltip{
+    position:absolute;
+    top:-6px;
+    background: rgba(20,22,28,0.92);
+    border:1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(8px);
+    border-radius:10px;
+    padding:6px 10px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    font-weight:600;
+    color:#fff;
+    pointer-events:none;
+    opacity:0;
+    transition: opacity .12s ease;
+    white-space:nowrap;
+    transform: translateX(-50%);
+  }
+  .chart-tooltip.visible{ opacity:1; }
+
+  /* ---------- Time tabs ---------- */
+  .time-tabs{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:24px;
+    background: rgba(255,255,255,0.03);
+    border-radius:var(--radius-pill);
+    padding:4px;
+  }
+  .time-tab{
+    flex:1;
+    text-align:center;
+    padding:8px 4px;
+    font-size:12px;
+    font-weight:700;
+    color: var(--text-tertiary);
+    border-radius:var(--radius-pill);
+    cursor:pointer;
+    transition: all .15s;
+  }
+  .time-tab.active{
+    background: rgba(245,166,35,0.16);
+    color: var(--amber);
+  }
+
+  /* ---------- Stats ---------- */
+  .section-title{
+    font-size:15px;
+    font-weight:800;
+    margin-bottom:12px;
+  }
+  .stats-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:14px;
+    margin-bottom:26px;
+  }
+  .stat-label{
+    font-size:11.5px;
+    font-weight:600;
+    color: var(--text-tertiary);
+    margin-bottom:4px;
+  }
+  .stat-value{
+    font-size:14.5px;
+    font-weight:700;
+  }
+
+  /* ---------- About ---------- */
+  .about-row{
+    display:flex;
+    gap:10px;
+  }
+  .about-btn{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    padding:13px;
+    border-radius:16px;
+    background: rgba(255,255,255,0.04);
+    border:1px solid var(--card-border);
+    font-size:13px;
+    font-weight:700;
+    color: var(--text-primary);
+    cursor:pointer;
+    transition: background .15s;
+  }
+  .about-btn:active{ background: rgba(255,255,255,0.08); }
+  .about-btn svg{ width:15px; height:15px; color: var(--text-secondary); }
+  .about-btn.disabled{ opacity:0.4; pointer-events:none; }
+
+  /* Loading pulse */
+  .loading{
+    color: var(--text-tertiary);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:0.4} }
+</style>
+</head>
+<body>
+
+<div class="device">
+
+  <div class="topbar">
+    <div class="back-btn" onclick="location.href='crypto.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+    </div>
+    <div class="fav-btn">
+      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9 12 2"/></svg>
+    </div>
+  </div>
+
+  <div class="identity-row">
+    <div class="identity-icon">
+      <img id="coinIcon" src="" alt="" />
+    </div>
+    <div>
+      <div class="identity-symbol" id="symbolText"></div>
+      <div class="identity-name" id="coinName"></div>
+    </div>
+  </div>
+
+  <div class="price-block">
+    <div class="price-value loading" id="priceValue">—</div>
+    <div class="price-change" id="priceChange">Loading...</div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-tooltip" id="chartTooltip">—</div>
+    <svg class="chart-svg" id="chartSvg" viewBox="0 0 380 170" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#34D399" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#34D399" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <line x1="0" y1="30" x2="380" y2="30" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+      <line x1="0" y1="85" x2="380" y2="85" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+      <line x1="0" y1="140" x2="380" y2="140" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+      <path id="chartFillPath" fill="url(#chartFill)" />
+      <path id="chartLinePath" fill="none" stroke="#34D399" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <line id="cursorLine" x1="0" y1="0" x2="0" y2="170" stroke="rgba(255,255,255,0.25)" stroke-width="1" opacity="0"/>
+      <circle id="cursorDot" r="5" fill="#fff" opacity="0"/>
+      <circle id="endDot" r="4.5" fill="#fff"/>
+      <circle id="endDotGlow" r="9" fill="#34D399" opacity="0.35"/>
+    </svg>
+  </div>
+
+  <div class="time-tabs">
+    <div class="time-tab" data-range="live">LIVE</div>
+    <div class="time-tab" data-range="1h">1H</div>
+    <div class="time-tab active" data-range="1d">1D</div>
+    <div class="time-tab" data-range="1w">1W</div>
+    <div class="time-tab" data-range="1m">1M</div>
+    <div class="time-tab" data-range="1y">1Y</div>
+  </div>
+
+  <div class="section-title">Stats</div>
+  <div class="stats-grid">
+    <div class="stat-item">
+      <div class="stat-label">Market Cap</div>
+      <div class="stat-value loading" id="statMarketCap">—</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">24h Volume</div>
+      <div class="stat-value loading" id="statVolume">—</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Circulating Supply</div>
+      <div class="stat-value loading" id="statSupply">—</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">All-Time High</div>
+      <div class="stat-value loading" id="statAth">—</div>
+    </div>
+  </div>
+
+  <div class="section-title">About</div>
+  <div class="about-row">
+    <div class="about-btn disabled" id="contractBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Contract
+    </div>
+    <div class="about-btn disabled" id="websiteBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+      Website
+    </div>
+  </div>
+
+</div>
+
+<script>
+const coin = (new URLSearchParams(location.search).get('coin') || 'BTC').toUpperCase();
+
+const COIN_IDS = {
+  BTC:'bitcoin',       ETH:'ethereum',        USDT:'tether',         XRP:'ripple',
+  SOL:'solana',        USDC:'usd-coin',       TRX:'tron',            ADA:'cardano',
+  DOGE:'dogecoin',     AVAX:'avalanche-2',    SUI:'sui',             LINK:'chainlink',
+  DOT:'polkadot',      LTC:'litecoin',        POL:'matic-network',   SHIB:'shiba-inu',
+  BCH:'bitcoin-cash',  TON:'the-open-network',UNI:'uniswap',         ICP:'internet-computer',
+  NEAR:'near',         APT:'aptos',           XLM:'stellar',         ATOM:'cosmos',
+  FIL:'filecoin',      ARB:'arbitrum',        OP:'optimism',         XMR:'monero',
+  PEPE:'pepe',         HYPE:'hyperliquid'
+};
+const ICON_OVERRIDE = { POL: 'matic' };
+const RANGE_DAYS    = { live:1, '1h':0.04, '1d':1, '1w':7, '1m':30, '1y':365 };
+
+const coinId  = COIN_IDS[coin] || coin.toLowerCase();
+const iconSym = ICON_OVERRIDE[coin] || coin.toLowerCase();
+
+// --- Static identity setup ---
+document.title = `LumenLive — ${coin}`;
+document.getElementById('symbolText').textContent = coin;
+document.getElementById('coinName').textContent   = coinId.replace(/-/g,' ');
+
+const iconEl = document.getElementById('coinIcon');
+iconEl.src = `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${iconSym}.png`;
+iconEl.onerror = () => { iconEl.src = 'assets/icons/crypto.png'; };
+
+// --- DOM refs ---
+const svg        = document.getElementById('chartSvg');
+const linePath   = document.getElementById('chartLinePath');
+const fillPath   = document.getElementById('chartFillPath');
+const endDot     = document.getElementById('endDot');
+const endDotGlow = document.getElementById('endDotGlow');
+const cursorLine = document.getElementById('cursorLine');
+const cursorDot  = document.getElementById('cursorDot');
+const tooltip    = document.getElementById('chartTooltip');
+const priceValueEl  = document.getElementById('priceValue');
+const priceChangeEl = document.getElementById('priceChange');
+
+const W = 380, H = 170, PAD = 10;
+let currentPoints = [];
+let liveTimer = null;
+
+// --- Formatters ---
+function fmtPrice(n) {
+  if (n == null || isNaN(n)) return '—';
+  if (n >= 1)      return '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  if (n >= 0.01)   return '$' + n.toFixed(4);
+  if (n >= 0.0001) return '$' + n.toFixed(6);
+  return '$' + n.toFixed(8);
+}
+function fmtLarge(n) {
+  if (n == null || isNaN(n)) return '—';
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6)  return '$' + (n/1e6).toFixed(2) + 'M';
+  return '$' + n.toLocaleString('en-US');
+}
+function fmtSupply(n) {
+  if (n == null || isNaN(n)) return '—';
+  if (n >= 1e9) return (n/1e9).toFixed(2) + 'B ' + coin;
+  if (n >= 1e6) return (n/1e6).toFixed(2) + 'M ' + coin;
+  return n.toLocaleString('en-US') + ' ' + coin;
+}
+
+// --- Chart rendering ---
+function buildSmoothPath(pts) {
+  if (pts.length < 2) return '';
+  let d = `M ${pts[0].x},${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i], p1 = pts[i+1];
+    const mx = (p0.x + p1.x) / 2;
+    d += ` C ${mx},${p0.y} ${mx},${p1.y} ${p1.x},${p1.y}`;
+  }
+  return d;
+}
+
+function renderChart(prices) {
+  if (!prices || prices.length < 2) return;
+  const vals = prices.map(p => p[1]);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const span = (max - min) || 1;
+
+  currentPoints = prices.map(([, val], i) => ({
+    x: (i / (prices.length - 1)) * W,
+    y: PAD + (1 - (val - min) / span) * (H - PAD * 2),
+    value: val
+  }));
+
+  const lineD = buildSmoothPath(currentPoints);
+  const fillD = lineD + ` L ${W},${H} L 0,${H} Z`;
+  const isUp  = vals[vals.length - 1] >= vals[0];
+  const color = isUp ? '#34D399' : '#F87171';
+
+  linePath.setAttribute('d', lineD);
+  linePath.setAttribute('stroke', color);
+  fillPath.setAttribute('d', fillD);
+  document.getElementById('chartFill').children[0].setAttribute('stop-color', color);
+
+  const last = currentPoints[currentPoints.length - 1];
+  endDot.setAttribute('cx', last.x);     endDot.setAttribute('cy', last.y);
+  endDotGlow.setAttribute('cx', last.x); endDotGlow.setAttribute('cy', last.y);
+  endDotGlow.setAttribute('fill', color);
+
+  const len = linePath.getTotalLength();
+  linePath.style.transition = 'none';
+  linePath.style.strokeDasharray  = len;
+  linePath.style.strokeDashoffset = len;
+  linePath.getBoundingClientRect();
+  linePath.style.transition = 'stroke-dashoffset 0.7s ease';
+  linePath.style.strokeDashoffset = 0;
+}
+
+// --- Price display update ---
+function updatePriceDisplay(price, change24h) {
+  priceValueEl.textContent = fmtPrice(price);
+  priceValueEl.classList.remove('loading');
+  const isUp  = change24h >= 0;
+  const arrowUp   = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>`;
+  const arrowDown = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M23 18l-9.5-9.5-5 5L1 6"/><path d="M17 18h6v-6"/></svg>`;
+  priceChangeEl.className = 'price-change ' + (isUp ? 'up' : 'down');
+  priceChangeEl.innerHTML = (isUp ? arrowUp : arrowDown) +
+    ` ${isUp ? '+' : ''}${change24h.toFixed(2)}%`;
+}
+
+// --- API calls ---
+async function fetchPrice() {
+  try {
+    const res  = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`);
+    const data = await res.json();
+    const info = data[coinId];
+    if (info) updatePriceDisplay(info.usd, info.usd_24h_change || 0);
+  } catch (e) {
+    console.warn('price fetch failed', e);
+  }
+}
+
+async function fetchChartData(days) {
+  const res  = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`);
+  const data = await res.json();
+  return data.prices || [];
+}
+
+async function fetchStats() {
+  try {
+    const res  = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}`);
+    const data = await res.json();
+    const mkt  = data.market_data || {};
+
+    document.getElementById('coinName').textContent = data.name || coin;
+
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      el.textContent = val;
+      el.classList.remove('loading');
+    };
+    setVal('statMarketCap', fmtLarge(mkt.market_cap?.usd));
+    setVal('statVolume',    fmtLarge(mkt.total_volume?.usd));
+    setVal('statSupply',    fmtSupply(mkt.circulating_supply));
+    setVal('statAth',       fmtPrice(mkt.ath?.usd));
+
+    // Website button
+    const homepage = data.links?.homepage?.[0];
+    if (homepage) {
+      const wBtn = document.getElementById('websiteBtn');
+      wBtn.classList.remove('disabled');
+      wBtn.onclick = () => window.open(homepage, '_blank');
+    }
+
+    // Contract address (first available)
+    const platforms = data.platforms || {};
+    const contractEntry = Object.values(platforms).find(v => v && v.length > 0);
+    if (contractEntry) {
+      const cBtn = document.getElementById('contractBtn');
+      cBtn.classList.remove('disabled');
+      cBtn.onclick = () => {
+        navigator.clipboard?.writeText(contractEntry).catch(() => {});
+        cBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+        setTimeout(() => {
+          cBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Contract`;
+        }, 2000);
+      };
+    }
+  } catch (e) {
+    console.warn('stats fetch failed', e);
+  }
+}
+
+// --- Tab switching ---
+async function switchTab(range) {
+  clearInterval(liveTimer);
+  liveTimer = null;
+
+  document.querySelectorAll('.time-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.range === range)
+  );
+
+  try {
+    const prices = await fetchChartData(RANGE_DAYS[range]);
+    renderChart(prices);
+  } catch (e) {
+    console.warn('chart fetch failed', e);
+  }
+
+  if (range === 'live') {
+    liveTimer = setInterval(fetchPrice, 30000);
+  }
+}
+
+// --- Cursor interaction ---
+function handlePointerMove(clientX) {
+  if (!currentPoints.length) return;
+  const rect = svg.getBoundingClientRect();
+  const x    = ((clientX - rect.left) / rect.width) * W;
+  let closest = currentPoints[0], minDist = Infinity;
+  currentPoints.forEach(p => {
+    const d = Math.abs(p.x - x);
+    if (d < minDist) { minDist = d; closest = p; }
+  });
+  cursorLine.setAttribute('x1', closest.x); cursorLine.setAttribute('x2', closest.x);
+  cursorLine.setAttribute('opacity', 1);
+  cursorDot.setAttribute('cx', closest.x); cursorDot.setAttribute('cy', closest.y);
+  cursorDot.setAttribute('opacity', 1);
+  tooltip.style.left = (closest.x / W) * rect.width + 'px';
+  tooltip.textContent = fmtPrice(closest.value);
+  tooltip.classList.add('visible');
+}
+function handlePointerEnd() {
+  cursorLine.setAttribute('opacity', 0);
+  cursorDot.setAttribute('opacity', 0);
+  tooltip.classList.remove('visible');
+}
+
+svg.addEventListener('mousemove',  e => handlePointerMove(e.clientX));
+svg.addEventListener('mouseleave', handlePointerEnd);
+svg.addEventListener('touchstart', e => handlePointerMove(e.touches[0].clientX), {passive:true});
+svg.addEventListener('touchmove',  e => { handlePointerMove(e.touches[0].clientX); e.preventDefault(); }, {passive:false});
+svg.addEventListener('touchend',   handlePointerEnd);
+
+document.querySelectorAll('.time-tab').forEach(tab =>
+  tab.addEventListener('click', () => switchTab(tab.dataset.range))
+);
+
+// Pause live polling when tab is hidden
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    clearInterval(liveTimer); liveTimer = null;
+  } else {
+    const activeRange = document.querySelector('.time-tab.active')?.dataset.range;
+    if (activeRange === 'live') liveTimer = setInterval(fetchPrice, 30000);
+    fetchPrice();
+  }
+});
+
+// --- Init ---
+(async () => {
+  await fetchPrice();
+  await switchTab('1d');
+  fetchStats();
+})();
+</script>
+
+</body>
+</html>

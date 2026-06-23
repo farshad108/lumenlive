@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>LumenLive — Crypto</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0C10;--border:rgba(255,255,255,0.08);--t1:#F2F4F8;--t2:#8A92A3;--t3:#5B6273;--green:#34D399;--red:#F87171;--pill:999px;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'Manrope',sans-serif;}
+body{background:radial-gradient(ellipse 600px 400px at 20% -5%,rgba(139,92,246,.14),transparent 60%),radial-gradient(ellipse 500px 350px at 90% 10%,rgba(59,130,246,.08),transparent 55%),var(--bg);min-height:100vh;display:flex;justify-content:center;}
+.device{width:100%;max-width:430px;min-height:100vh;padding:22px 18px 120px;}
+.topbar{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+.back-btn{width:38px;height:38px;border-radius:var(--pill);background:rgba(255,255,255,.05);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--t1);flex-shrink:0;cursor:pointer;}
+.topbar-title{font-size:19px;font-weight:800;}
+.topbar-sub{font-size:12px;color:var(--t3);font-weight:600;margin-top:1px;}
+.last-update{font-size:10px;color:var(--t3);margin-top:2px;}
+.coin-list{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
+.coin-pill{position:relative;height:76px;border-radius:38px;background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(18px);display:flex;align-items:center;padding:0 12px;overflow:hidden;box-shadow:inset 0 1px 1px rgba(255,255,255,.2),0 14px 30px -14px rgba(0,0,0,.7);cursor:pointer;transition:transform .15s;}
+.coin-pill::before{content:"";position:absolute;inset:0;background:radial-gradient(circle 110px at 18% 50%,var(--glow,rgba(100,100,120,.15)),transparent 70%);pointer-events:none;}
+.coin-pill:active{transform:scale(.98);}
+.pill-btc{--glow:rgba(245,166,35,.28);}
+.pill-eth{--glow:rgba(98,126,234,.28);}
+.pill-usdt{--glow:rgba(38,161,123,.28);}
+.pill-xrp{--glow:rgba(120,120,130,.28);}
+.pill-sol{--glow:rgba(153,69,255,.28);}
+.icon-wrap{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;overflow:hidden;}
+.icon-wrap img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.icon-fb{font-size:10px;font-weight:800;color:var(--t2);}
+.coin-info{margin-left:12px;position:relative;z-index:1;flex:1;min-width:0;}
+.name-row{display:flex;align-items:center;gap:7px;}
+.csymbol{font-size:15px;font-weight:800;}
+.cname{font-size:10px;font-weight:700;color:var(--t2);background:rgba(255,255,255,.08);padding:2px 8px;border-radius:var(--pill);white-space:nowrap;}
+.cnet{font-size:11.5px;color:var(--t3);font-weight:600;margin-top:2px;}
+.price-block{text-align:right;position:relative;z-index:1;flex-shrink:0;margin-left:8px;}
+.cprice{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;}
+.cchange{font-size:11px;font-weight:700;margin-top:3px;}
+.cchange.up{color:var(--green);}
+.cchange.down{color:var(--red);}
+.action-row{display:flex;gap:12px;}
+.action-btn{flex:1;height:50px;border-radius:var(--pill);display:flex;align-items:center;justify-content:center;gap:7px;font-size:14px;font-weight:700;border:1px solid rgba(255,255,255,.12);cursor:pointer;}
+.action-btn svg{width:16px;height:16px;}
+.btn-manage{background:linear-gradient(135deg,rgba(59,130,246,.30),rgba(139,92,246,.20));color:#fff;border-color:rgba(139,92,246,.35);}
+.btn-reset{background:rgba(255,255,255,.04);color:var(--t2);}
+.loading{text-align:center;padding:40px;color:var(--t3);font-size:14px;}
+.spinning{display:inline-block;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="device">
+  <div class="topbar">
+    <div class="back-btn" onclick="location.href='index.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+    </div>
+    <div>
+      <div class="topbar-title">Crypto</div>
+      <div class="topbar-sub" id="topbarSub">Loading...</div>
+      <div class="last-update" id="lastUpdate"></div>
+    </div>
+  </div>
+  <div class="coin-list" id="coinList">
+    <div class="loading"><span class="spinning">⟳</span> Loading prices...</div>
+  </div>
+  <div class="action-row">
+    <div class="action-btn btn-manage" onclick="location.href='manage-crypto.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Manage crypto
+    </div>
+    <div class="action-btn btn-reset" onclick="resetCoins()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      Reset
+    </div>
+  </div>
+</div>
+
+<script src="js/supabase.js"></script>
+<script>
+const TELEGRAM_USER_ID = 123456789;
+const CDN = 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/';
+
+// نام فایل آیکون در CDN برای هر کوین
+const ICON_FILE = {
+  BTC:'btc',ETH:'eth',USDT:'usdt',XRP:'xrp',SOL:'sol',USDC:'usdc',
+  TRX:'trx',ADA:'ada',DOGE:'doge',AVAX:'avax',SUI:'sui',LINK:'link',
+  DOT:'dot',LTC:'ltc',POL:'matic',SHIB:'shib',BCH:'bch',TON:'ton',
+  UNI:'uni',ICP:'icp',NEAR:'near',APT:'apt',XLM:'xlm',ATOM:'atom',
+  FIL:'fil',ARB:'arb',OP:'op',XMR:'xmr',PEPE:'pepe',HYPE:'hype'
+};
+
+// CoinGecko ID برای هر کوین
+const CG_IDS = {
+  BTC:'bitcoin',ETH:'ethereum',USDT:'tether',XRP:'ripple',SOL:'solana',
+  USDC:'usd-coin',TRX:'tron',ADA:'cardano',DOGE:'dogecoin',AVAX:'avalanche-2',
+  SUI:'sui',LINK:'chainlink',DOT:'polkadot',LTC:'litecoin',POL:'matic-network',
+  SHIB:'shiba-inu',BCH:'bitcoin-cash',TON:'the-open-network',UNI:'uniswap',
+  ICP:'internet-computer',NEAR:'near',APT:'aptos',XLM:'stellar',ATOM:'cosmos',
+  FIL:'filecoin',ARB:'arbitrum',OP:'optimism',XMR:'monero',PEPE:'pepe',
+  HYPE:'hyperliquid'
+};
+
+const PILL_CLASS = {BTC:'pill-btc',ETH:'pill-eth',USDT:'pill-usdt',XRP:'pill-xrp',SOL:'pill-sol'};
+
+const ALL_COINS = [
+  {s:'BTC',n:'Bitcoin',net:'Bitcoin'},
+  {s:'ETH',n:'Ethereum',net:'Ethereum'},
+  {s:'USDT',n:'Tether',net:'BNB Smart Chain'},
+  {s:'XRP',n:'Ripple',net:'XRP Ledger'},
+  {s:'SOL',n:'Solana',net:'Solana'},
+  {s:'USDC',n:'USD Coin',net:'Ethereum'},
+  {s:'TRX',n:'TRON',net:'TRON'},
+  {s:'HYPE',n:'Hyperliquid',net:'Hyperliquid L1'},
+  {s:'ADA',n:'Cardano',net:'Cardano'},
+  {s:'DOGE',n:'Dogecoin',net:'Dogecoin'},
+  {s:'AVAX',n:'Avalanche',net:'Avalanche'},
+  {s:'SUI',n:'Sui',net:'Sui'},
+  {s:'LINK',n:'Chainlink',net:'Ethereum'},
+  {s:'DOT',n:'Polkadot',net:'Polkadot'},
+  {s:'LTC',n:'Litecoin',net:'Litecoin'},
+  {s:'POL',n:'Polygon',net:'Polygon'},
+  {s:'SHIB',n:'Shiba Inu',net:'Ethereum'},
+  {s:'BCH',n:'Bitcoin Cash',net:'Bitcoin Cash'},
+  {s:'TON',n:'Toncoin',net:'The Open Network'},
+  {s:'UNI',n:'Uniswap',net:'Ethereum'},
+  {s:'ICP',n:'Internet Computer',net:'ICP'},
+  {s:'NEAR',n:'NEAR Protocol',net:'NEAR'},
+  {s:'APT',n:'Aptos',net:'Aptos'},
+  {s:'XLM',n:'Stellar',net:'Stellar'},
+  {s:'ATOM',n:'Cosmos',net:'Cosmos'},
+  {s:'FIL',n:'Filecoin',net:'Filecoin'},
+  {s:'ARB',n:'Arbitrum',net:'Arbitrum'},
+  {s:'OP',n:'Optimism',net:'Optimism'},
+  {s:'XMR',n:'Monero',net:'Monero'},
+  {s:'PEPE',n:'Pepe',net:'Ethereum'},
+];
+
+let prices = {};
+let autoRefreshTimer = null;
+
+function iconHTML(symbol) {
+  const f = ICON_FILE[symbol];
+  if(f) return `<img src="${CDN}${f}.png" alt="${symbol}" onerror="this.parentElement.innerHTML='<span class=icon-fb>${symbol.slice(0,3)}</span>'">`;
+  return `<span class="icon-fb">${symbol.slice(0,3)}</span>`;
+}
+
+function formatPrice(usd) {
+  if(usd >= 1000) return '$' + usd.toLocaleString('en',{maximumFractionDigits:2});
+  if(usd >= 1) return '$' + usd.toFixed(2);
+  if(usd >= 0.01) return '$' + usd.toFixed(4);
+  return '$' + usd.toFixed(8);
+}
+
+function formatChange(pct) {
+  const sign = pct >= 0 ? '+' : '';
+  return sign + pct.toFixed(2) + '%';
+}
+
+// دریافت قیمت‌های واقعی از CoinGecko
+async function fetchPrices(symbols) {
+  const ids = symbols.map(s => CG_IDS[s]).filter(Boolean).join(',');
+  if(!ids) return;
+  try {
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
+    );
+    const data = await res.json();
+    symbols.forEach(s => {
+      const id = CG_IDS[s];
+      if(data[id]) {
+        prices[s] = {
+          price: formatPrice(data[id].usd),
+          change: formatChange(data[id].usd_24h_change || 0),
+          up: (data[id].usd_24h_change || 0) >= 0
+        };
+      }
+    });
+    const now = new Date();
+    document.getElementById('lastUpdate').textContent =
+      `Updated ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  } catch(e) {
+    console.error('Price fetch failed:', e);
+  }
+}
+
+async function loadAndRender() {
+  let active = await supabase.getActiveCoins(TELEGRAM_USER_ID);
+  if(active.length === 0) active = ['BTC','ETH','USDT','XRP','SOL'];
+  const coins = ALL_COINS.filter(c => active.includes(c.s));
+  document.getElementById('topbarSub').textContent =
+    `${coins.length} coin${coins.length!==1?'s':''} shown · live prices`;
+
+  // اول رندر با قیمت‌های قبلی (یا "—")
+  renderCoins(coins);
+
+  // بعد قیمت‌های جدید از CoinGecko
+  await fetchPrices(active);
+  renderCoins(coins);
+
+  // آپدیت خودکار هر 60 ثانیه
+  if(autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(async () => {
+    await fetchPrices(active);
+    renderCoins(coins);
+  }, 60000);
+}
+
+function renderCoins(coins) {
+  document.getElementById('coinList').innerHTML = coins.map(coin => {
+    const p = prices[coin.s] || {price:'—',change:'—',up:true};
+    return `
+    <div class="coin-pill ${PILL_CLASS[coin.s]||''}" onclick="location.href='coin-detail.html?coin=${coin.s}'">
+      <div class="icon-wrap">${iconHTML(coin.s)}</div>
+      <div class="coin-info">
+        <div class="name-row">
+          <span class="csymbol">${coin.s}</span>
+          <span class="cname">${coin.n}</span>
+        </div>
+        <div class="cnet">${coin.net}</div>
+      </div>
+      <div class="price-block">
+        <div class="cprice">${p.price}</div>
+        <div class="cchange ${p.up?'up':'down'}">${p.change}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function resetCoins() {
+  if(confirm('Reset to default 5 coins?')) {
+    await supabase.resetToDefaults(TELEGRAM_USER_ID);
+    loadAndRender();
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible') loadAndRender();
+});
+
+loadAndRender();
+</script>
+</body>
+</html>

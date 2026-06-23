@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>More — LumenLive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0C10;
+    --bg-elev: #11141A;
+    --card-border: rgba(255,255,255,0.08);
+    --text-primary: #F2F4F8;
+    --text-secondary: #8A92A3;
+    --text-tertiary: #5B6273;
+
+    --glow-blue: #3B82F6;
+    --glow-purple: #8B5CF6;
+    --glow-amber: #F5A623;
+    --glow-silver: #9FB4C7;
+    --glow-green: #34D399;
+    --glow-violet: #A78BFA;
+
+    --radius-lg: 28px;
+    --radius-md: 22px;
+    --radius-pill: 999px;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body{
+    height:100%;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Manrope', sans-serif;
+    overflow-x:hidden;
+  }
+
+  body{
+    background:
+      radial-gradient(ellipse 600px 400px at 20% -5%, rgba(139,92,246,0.16), transparent 60%),
+      radial-gradient(ellipse 500px 350px at 90% 10%, rgba(59,130,246,0.10), transparent 55%),
+      var(--bg);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+
+  .device{
+    width:100%;
+    max-width:430px;
+    min-height:100vh;
+    position:relative;
+    padding: 28px 18px 110px;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .back-btn{
+    width:38px; height:38px;
+    border-radius:var(--radius-pill);
+    background: rgba(255,255,255,0.04);
+    border:1px solid var(--card-border);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--text-secondary);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .back-btn:active{ opacity:0.7; }
+  .back-btn svg{ width:20px; height:20px; }
+  .topbar-title{
+    font-size:18px;
+    font-weight:800;
+  }
+
+  /* ---------- Grid ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .card{
+    position:relative;
+    border-radius: var(--radius-md);
+    padding: 20px 18px 18px;
+    background: var(--bg-elev);
+    border: 1px solid var(--card-border);
+    overflow:hidden;
+    cursor:pointer;
+    transition: transform .15s ease;
+    min-height: 152px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .card:active{ transform: scale(0.97); }
+
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:-30% -30% auto auto;
+    width:160px; height:160px;
+    border-radius:50%;
+    filter: blur(40px);
+    opacity:0.35;
+    pointer-events:none;
+  }
+
+  .card-icon{
+    width:68px; height:68px;
+    border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    z-index:1;
+  }
+  .card-icon img{
+    width:100%; height:100%;
+    object-fit:contain;
+    filter: drop-shadow(0 4px 14px rgba(0,0,0,0.4));
+  }
+
+  .card-title{
+    font-size:15.5px;
+    font-weight:700;
+    margin-top:14px;
+    position:relative; z-index:1;
+  }
+  .card-sub{
+    font-size:12px;
+    color: var(--text-tertiary);
+    margin-top:2px;
+    position:relative; z-index:1;
+  }
+
+  .card-arrow{
+    position:absolute;
+    bottom:14px; right:14px;
+    width:26px; height:26px;
+    border-radius:50%;
+    background: rgba(255,255,255,0.05);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--text-secondary);
+    z-index:1;
+  }
+
+  .card-alerts::before   { background: #EF4444; }
+  .card-personal::before { background: #2DD4BF; }
+  .card-analysis::before { background: #F59E0B; }
+  .card-social::before   { background: #EC4899; }
+  .card-local::before    { background: var(--glow-green); }
+  .card-tools::before    { background: var(--glow-violet); }
+
+  /* ---------- Bottom nav ---------- */
+  .bottom-nav{
+    position:fixed;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    width:calc(100% - 36px);
+    max-width:394px;
+    background: rgba(17,20,26,0.85);
+    backdrop-filter: blur(20px);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-pill);
+    display:flex;
+    justify-content:space-around;
+    padding:10px 6px;
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.6);
+  }
+  .nav-item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    color: var(--text-tertiary);
+    font-size:10.5px;
+    font-weight:600;
+    padding:6px 14px;
+    border-radius:var(--radius-pill);
+    transition: all .15s ease;
+    cursor:pointer;
+  }
+  .nav-item svg{ width:21px; height:21px; }
+  .nav-item.active{
+    color:#fff;
+    background: rgba(59,130,246,0.16);
+  }
+  .nav-item.active svg{ filter: drop-shadow(0 0 6px rgba(59,130,246,0.8)); color:#5B9BFF; }
+</style>
+</head>
+<body>
+
+<div class="device">
+
+  <div class="topbar">
+    <div class="back-btn" onclick="location.href='index.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+    </div>
+    <div class="topbar-title">More</div>
+  </div>
+
+  <div class="grid">
+
+    <div class="card card-alerts" onclick="location.href='#'">
+      <div class="card-icon">
+        <img src="assets/icons/alerts.png" alt="Alerts" />
+      </div>
+      <div>
+        <div class="card-title">Alerts &amp; Tracking</div>
+        <div class="card-sub">Price alerts, gas tracker</div>
+      </div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+    <div class="card card-personal" onclick="location.href='#'">
+      <div class="card-icon">
+        <img src="assets/icons/personalize.png" alt="Personalize" />
+      </div>
+      <div>
+        <div class="card-title">Personalize</div>
+        <div class="card-sub">Themes, currency, layout</div>
+      </div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+    <div class="card card-analysis" onclick="location.href='#'">
+      <div class="card-icon">
+        <img src="assets/icons/analysis.png" alt="Asset Analysis" />
+      </div>
+      <div>
+        <div class="card-title">Asset Analysis</div>
+        <div class="card-sub">Insights, performance</div>
+      </div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+    <div class="card card-social" onclick="location.href='#'">
+      <div class="card-icon">
+        <img src="assets/icons/social.png" alt="Social" />
+      </div>
+      <div>
+        <div class="card-title">Social</div>
+        <div class="card-sub">Community, signals</div>
+      </div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+    <div class="card card-local" onclick="location.href='#'">
+      <div class="card-icon">
+        <img src="assets/icons/localmarket.png" alt="Local Market" />
+      </div>
+      <div>
+        <div class="card-title">Local Market</div>
+        <div class="card-sub">Prices, news, overview</div>
+      </div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+    <div class="card card-tools" onclick="location.href='#'">
+      <div class="card-icon">
+        <img src="assets/icons/quicktools.png" alt="Quick Tools" />
+      </div>
+      <div>
+        <div class="card-title">Quick Tools</div>
+        <div class="card-sub">Calculator, converter</div>
+      </div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <div class="nav-item" onclick="location.href='index.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+    Home
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+    Watchlist
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    Alerts
+  </div>
+  <div class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l.06.06a2 2 0 1 1-2.83-2.83l-.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Settings
+  </div>
+</div>
+
+</body>
+</html>

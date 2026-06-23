@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>LumenLive — Manage Crypto</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0C10;--border:rgba(255,255,255,0.08);--t1:#F2F4F8;--t2:#8A92A3;--t3:#5B6273;--green:#34D399;--pill:999px;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'Manrope',sans-serif;}
+body{background:radial-gradient(ellipse 600px 400px at 20% -5%,rgba(139,92,246,.12),transparent 60%),var(--bg);min-height:100vh;display:flex;justify-content:center;}
+.device{width:100%;max-width:430px;min-height:100vh;padding:22px 18px 40px;}
+.topbar{display:flex;align-items:center;gap:14px;padding-bottom:14px;margin-bottom:8px;position:sticky;top:0;background:linear-gradient(var(--bg) 75%,transparent);z-index:10;}
+.back-btn{width:38px;height:38px;border-radius:var(--pill);background:rgba(255,255,255,.05);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--t1);flex-shrink:0;cursor:pointer;}
+.topbar-title{font-size:19px;font-weight:800;}
+.topbar-sub{font-size:12px;color:var(--t3);font-weight:600;margin-top:1px;}
+.badge{margin-left:auto;font-size:12px;font-weight:700;color:var(--green);background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);padding:6px 12px;border-radius:var(--pill);white-space:nowrap;}
+.coin-row{display:flex;align-items:center;padding:12px 14px;border-radius:18px;margin-bottom:8px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);transition:background .15s;}
+.coin-row.on{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.18);}
+.row-icon{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+.row-icon img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.icon-fb{font-size:10px;font-weight:800;color:var(--t2);}
+.row-info{margin-left:12px;flex:1;min-width:0;}
+.sym-row{display:flex;align-items:center;gap:7px;}
+.rsym{font-size:14px;font-weight:800;}
+.rnet{font-size:10px;font-weight:700;color:var(--t2);background:rgba(255,255,255,.07);padding:2px 8px;border-radius:var(--pill);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rname{font-size:11px;color:var(--t3);font-weight:600;margin-top:1px;}
+.switch{flex-shrink:0;width:50px;height:30px;border-radius:var(--pill);position:relative;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s,border-color .2s;}
+.switch.on{background:linear-gradient(135deg,#34D399,#10B981);border-color:rgba(52,211,153,.6);box-shadow:0 0 16px rgba(52,211,153,.45);}
+.knob{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#dfe3ea);box-shadow:0 2px 5px rgba(0,0,0,.35);transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
+.switch.on .knob{transform:translateX(20px);}
+.loading{text-align:center;padding:40px;color:var(--t3);font-size:14px;}
+</style>
+</head>
+<body>
+<div class="device">
+  <div class="topbar">
+    <div class="back-btn" onclick="location.href='crypto.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+    </div>
+    <div>
+      <div class="topbar-title">Manage Crypto</div>
+      <div class="topbar-sub">Choose which coins to show</div>
+    </div>
+    <div class="badge" id="badge">...</div>
+  </div>
+  <div id="list"><div class="loading">Loading...</div></div>
+</div>
+
+<script src="js/supabase.js"></script>
+<script>
+const TELEGRAM_USER_ID = 123456789;
+const CDN = 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/';
+
+const ICON_FILE = {
+  BTC:'btc',ETH:'eth',USDT:'usdt',XRP:'xrp',SOL:'sol',USDC:'usdc',
+  TRX:'trx',ADA:'ada',DOGE:'doge',AVAX:'avax',SUI:'sui',LINK:'link',
+  DOT:'dot',LTC:'ltc',POL:'matic',SHIB:'shib',BCH:'bch',TON:'ton',
+  UNI:'uni',ICP:'icp',NEAR:'near',APT:'apt',XLM:'xlm',ATOM:'atom',
+  FIL:'fil',ARB:'arb',OP:'op',XMR:'xmr',PEPE:'pepe',HYPE:'hype'
+};
+
+const COINS = [
+  {s:'BTC',n:'Bitcoin',net:'Bitcoin'},
+  {s:'ETH',n:'Ethereum',net:'Ethereum'},
+  {s:'USDT',n:'Tether',net:'BNB Smart Chain'},
+  {s:'XRP',n:'Ripple',net:'XRP Ledger'},
+  {s:'SOL',n:'Solana',net:'Solana'},
+  {s:'USDC',n:'USD Coin',net:'Ethereum'},
+  {s:'TRX',n:'TRON',net:'TRON'},
+  {s:'HYPE',n:'Hyperliquid',net:'Hyperliquid L1'},
+  {s:'ADA',n:'Cardano',net:'Cardano'},
+  {s:'DOGE',n:'Dogecoin',net:'Dogecoin'},
+  {s:'AVAX',n:'Avalanche',net:'Avalanche'},
+  {s:'SUI',n:'Sui',net:'Sui'},
+  {s:'LINK',n:'Chainlink',net:'Ethereum'},
+  {s:'DOT',n:'Polkadot',net:'Polkadot'},
+  {s:'LTC',n:'Litecoin',net:'Litecoin'},
+  {s:'POL',n:'Polygon',net:'Polygon'},
+  {s:'SHIB',n:'Shiba Inu',net:'Ethereum'},
+  {s:'BCH',n:'Bitcoin Cash',net:'Bitcoin Cash'},
+  {s:'TON',n:'Toncoin',net:'The Open Network'},
+  {s:'UNI',n:'Uniswap',net:'Ethereum'},
+  {s:'ICP',n:'Internet Computer',net:'ICP'},
+  {s:'NEAR',n:'NEAR Protocol',net:'NEAR'},
+  {s:'APT',n:'Aptos',net:'Aptos'},
+  {s:'XLM',n:'Stellar',net:'Stellar'},
+  {s:'ATOM',n:'Cosmos',net:'Cosmos'},
+  {s:'FIL',n:'Filecoin',net:'Filecoin'},
+  {s:'ARB',n:'Arbitrum',net:'Arbitrum'},
+  {s:'OP',n:'Optimism',net:'Optimism'},
+  {s:'XMR',n:'Monero',net:'Monero'},
+  {s:'PEPE',n:'Pepe',net:'Ethereum'},
+];
+
+let states = {};
+
+function iconHTML(s) {
+  const f = ICON_FILE[s];
+  if(f) return `<img src="${CDN}${f}.png" alt="${s}" onerror="this.parentElement.innerHTML='<span class=icon-fb>${s.slice(0,3)}</span>'">`;
+  return `<span class="icon-fb">${s.slice(0,3)}</span>`;
+}
+
+function updateBadge() {
+  const n = Object.values(states).filter(Boolean).length;
+  document.getElementById('badge').textContent = `${n} selected`;
+}
+
+function render() {
+  document.getElementById('list').innerHTML = COINS.map(c => {
+    const on = states[c.s] || false;
+    return `
+    <div class="coin-row ${on?'on':''}" >
+      <div class="row-icon">${iconHTML(c.s)}</div>
+      <div class="row-info">
+        <div class="sym-row">
+          <span class="rsym">${c.s}</span>
+          <span class="rnet">${c.net}</span>
+        </div>
+        <div class="rname">${c.n}</div>
+      </div>
+      <div class="switch ${on?'on':''}" data-s="${c.s}">
+        <div class="knob"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('.switch').forEach(sw => {
+    sw.addEventListener('click', () => toggle(sw.dataset.s));
+  });
+}
+
+async function toggle(symbol) {
+  states[symbol] = !states[symbol];
+  await supabase.setCoinActive(TELEGRAM_USER_ID, symbol, states[symbol]);
+  render();
+  updateBadge();
+}
+
+async function init() {
+  const active = await supabase.getActiveCoins(TELEGRAM_USER_ID);
+  COINS.forEach(c => { states[c.s] = active.includes(c.s); });
+  render();
+  updateBadge();
+}
+
+init();
+</script>
+</body>
+</html>
